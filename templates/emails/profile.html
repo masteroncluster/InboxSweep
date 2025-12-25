@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+    <h2>User Profile</h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Username: {{ user.username }}</p>
+    <p>Email Verified: {% if user.email_verified %}Yes{% else %}No{% endif %}</p>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

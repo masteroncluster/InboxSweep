@@ -5,7 +5,7 @@ from .models import User, EmailAccount
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = ('email', 'username', 'email_verified', 'is_staff', 'is_active')
-    list_filter = ('email_verified', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'email_verified')
     search_fields = ('email', 'username')
     ordering = ('email',)
     
@@ -13,8 +13,8 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('email', 'username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Email Verification', {'fields': ('email_verified', 'email_verified_at')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Email Verification', {'fields': ('email_verified', 'email_verified_at')}),
     )
     
     add_fieldsets = (

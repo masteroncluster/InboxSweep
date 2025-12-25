@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
@@ -7,53 +7,56 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+from django.views.generic import TemplateView, ListView, DeleteView
+from django.views import View
+from django.utils.decorators import method_decorator
+from core.mixins import AuthRequiredMixin, AjaxResponseMixin, CsrfExemptMixin
 from .models import OAuthConnection
 from emails.models import EmailAccount
 
 logger = logging.getLogger(__name__)
 
-@login_required
-def oauth_connect(request, provider):
-    """
-    Initiate OAuth connection flow for the specified provider
-    """
-    # In a real implementation, this would redirect to the provider's OAuth endpoint
-    # For now, we'll just show a placeholder page
-    context = {
-        'provider': provider,
-        'provider_name': provider.title(),
-    }
-    return render(request, 'oauth/connect.html', context)
+class OAuthConnectView(AuthRequiredMixin, TemplateView):
+    """Initiate OAuth connection flow for the specified provider"""
+    template_name = 'oauth/connect.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        provider = kwargs.get('provider')
+        context.update({
+            'provider': provider,
+            'provider_name': provider.title(),
+        })
+        return context
 
-@login_required
-def oauth_callback(request):
-    """
-    Handle OAuth callback from providers
-    """
-    # In a real implementation, this would handle the OAuth callback
-    # and exchange the authorization code for access tokens
-    messages.success(request, "OAuth connection successful!")
-    return redirect('oauth_connections')
+class OAuthCallbackView(AuthRequiredMixin, View):
+    """Handle OAuth callback from providers"""
+    
+    def get(self, request):
+        # In a real implementation, this would handle the OAuth callback
+        # and exchange the authorization code for access tokens
+        messages.success(request, "OAuth connection successful!")
+        return redirect('oauth:connections')
 
-@login_required
-def oauth_connections(request):
-    """
-    Display user's OAuth connections
-    """
-    connections = OAuthConnection.objects.filter(user=request.user)
-    context = {
-        'connections': connections,
-    }
-    return render(request, 'oauth/connections.html', context)
+class OAuthConnectionsView(AuthRequiredMixin, ListView):
+    """Display user's OAuth connections"""
+    template_name = 'oauth/connections.html'
+    context_object_name = 'connections'
+    
+    def get_queryset(self):
+        return OAuthConnection.objects.filter(user=self.request.user)
 
-@login_required
-@require_http_methods(["POST"])
-def oauth_disconnect(request, connection_id):
-    """
-    Disconnect an OAuth connection
-    """
-    try:
-        connection = OAuthConnection.objects.get(id=connection_id, user=request.user)
+class OAuthDisconnectView(AuthRequiredMixin, View):
+    """Disconnect an OAuth connection"""
+    
+    def post(self, request, connection_id):
+        connection = get_object_or_404(
+            OAuthConnection,
+            id=connection_id,
+            user=request.user
+        )
+        
+        # Deactivate the connection
         connection.is_active = False
         connection.save()
         
@@ -62,25 +65,27 @@ def oauth_disconnect(request, connection_id):
             connection.email_account.is_active = False
             connection.email_account.save()
         
-        messages.success(request, f"Disconnected from {connection.provider.title()}")
-    except OAuthConnection.DoesNotExist:
-        messages.error(request, "Connection not found")
-    
-    return redirect('oauth_connections')
+        messages.success(
+            request,
+            f"Disconnected from {connection.provider.title()}"
+        )
+        return redirect('oauth:connections')
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def oauth_webhook(request, provider):
-    """
-    Handle webhook notifications from email providers
-    """
-    try:
-        # In a real implementation, this would process webhook notifications
-        # from providers like Gmail about new emails, changes, etc.
-        data = json.loads(request.body)
-        logger.info(f"Received {provider} webhook: {data}")
-        
-        return JsonResponse({'status': 'ok'})
-    except Exception as e:
-        logger.error(f"Error processing {provider} webhook: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+class OAuthWebhookView(CsrfExemptMixin, AjaxResponseMixin, View):
+    """Handle webhook notifications from email providers"""
+    
+    @method_decorator(require_http_methods(["POST"]))
+    def post(self, request, provider):
+        try:
+            # In a real implementation, this would process webhook notifications
+            # from providers like Gmail about new emails, changes, etc.
+            data = json.loads(request.body)
+            logger.info(f"Received {provider} webhook: {data}")
+            
+            return self.render_to_json_response({'status': 'ok'})
+        except Exception as e:
+            logger.error(f"Error processing {provider} webhook: {e}")
+            return self.render_to_json_response(
+                {'error': str(e)},
+                status=500
+            )

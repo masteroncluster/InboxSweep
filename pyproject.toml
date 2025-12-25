@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "inboxsweep"
+version = "0.1.0"
+description = "Email management and spam detection system"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1.0"
+psycopg2-binary = "^2.9.9"
+redis = "^5.0.8"
+celery = "^5.4.0"
+django-allauth = "^0.57.0"
+google-auth = "^2.34.0"
+google-auth-oauthlib = "^1.2.1"
+imaplib2 = "^3.6"
+cryptography = "^43.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-django = "^4.9.0"
+pytest-cov = "^5.0.0"
+black = "^24.8.0"
+flake8 = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--cov=. --cov-report=html --cov-report=term"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']

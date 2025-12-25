@@ -23,5 +23,6 @@ urlpatterns = [
     path('oauth/', include('oauth.urls')),
     path('emails/', include('emails.urls')),
     path('sync/', include('sync.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('', RedirectView.as_view(url='/emails/', permanent=False)),
 ]
