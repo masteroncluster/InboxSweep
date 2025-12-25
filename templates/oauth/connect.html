@@ -1,0 +1,30 @@
+{% extends 'oauth/base.html' %}
+
+{% block title %}Connect {{ provider_name }} - InboxSweep{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Connect to {{ provider_name }}</h3>
+            </div>
+            <div class="card-body">
+                <p>You are about to connect your {{ provider_name }} account to InboxSweep.</p>
+                <p>This will allow InboxSweep to:</p>
+                <ul>
+                    <li>Read your emails</li>
+                    <li>Organize your inbox</li>
+                    <li>Help you manage your email more efficiently</li>
+                </ul>
+                <form method="post" action="{% url 'oauth:callback' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="provider" value="{{ provider }}">
+                    <button type="submit" class="btn btn-primary">Connect {{ provider_name }}</button>
+                    <a href="{% url 'oauth:connections' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

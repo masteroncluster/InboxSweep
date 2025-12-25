@@ -1,0 +1,64 @@
+{% extends 'sync/base.html' %}
+
+{% block title %}Sync History - {{ email_account.email_address }} - InboxSweep{% endblock %}
+
+{% block sync_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Sync History for {{ email_account.email_address }}</h2>
+    <a href="{% url 'sync:dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if sync_logs %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Messages Processed</th>
+                    <th>Messages Added</th>
+                    <th>Messages Updated</th>
+                    <th>Messages Deleted</th>
+                    <th>Started</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in sync_logs %}
+                <tr>
+                    <td>{{ log.sync_type|title }}</td>
+                    <td>
+                        {% if log.status == 'completed' %}
+                            <span class="text-success">{{ log.status|title }}</span>
+                        {% elif log.status == 'failed' %}
+                            <span class="text-danger">{{ log.status|title }}</span>
+                        {% else %}
+                            <span class="text-warning">{{ log.status|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.messages_processed }}</td>
+                    <td>{{ log.messages_added }}</td>
+                    <td>{{ log.messages_updated }}</td>
+                    <td>{{ log.messages_deleted }}</td>
+                    <td>{{ log.started_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if log.completed_at %}
+                            {{ log.completed_at|date:"M d, Y H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h4>No sync history available</h4>
+        <p class="text-muted">No synchronization has been performed for this account yet.</p>
+    </div>
+{% endif %}
+{% endblock %}

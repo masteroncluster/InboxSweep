@@ -1,0 +1,63 @@
+{% extends 'oauth/base.html' %}
+
+{% block title %}OAuth Connections - InboxSweep{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>OAuth Connections</h2>
+    <a href="#" class="btn btn-primary">Add Connection</a>
+</div>
+
+{% if connections %}
+    <div class="row">
+        {% for connection in connections %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {% if connection.provider == 'google' %}
+                            <i class="fab fa-google"></i> Google
+                        {% elif connection.provider == 'microsoft' %}
+                            <i class="fab fa-microsoft"></i> Microsoft
+                        {% elif connection.provider == 'yahoo' %}
+                            <i class="fab fa-yahoo"></i> Yahoo
+                        {% else %}
+                            {{ connection.provider|title }}
+                        {% endif %}
+                    </h5>
+                    <p class="card-text">
+                        <strong>Status:</strong> 
+                        {% if connection.is_active %}
+                            <span class="text-success">Active</span>
+                        {% else %}
+                            <span class="text-danger">Inactive</span>
+                        {% endif %}
+                        <br>
+                        <strong>Connected:</strong> {{ connection.created_at|date:"M d, Y" }}
+                        <br>
+                        {% if connection.token_expiry %}
+                            <strong>Token Expires:</strong> {{ connection.token_expiry|date:"M d, Y H:i" }}
+                        {% endif %}
+                    </p>
+                    {% if connection.is_active %}
+                        <a href="{% url 'oauth:disconnect' connection.id %}" 
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Are you sure you want to disconnect this account?')">
+                            Disconnect
+                        </a>
+                    {% else %}
+                        <button class="btn btn-sm btn-outline-secondary" disabled>Disconnected</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h4>No OAuth connections yet</h4>
+        <p class="text-muted">Connect your email accounts to get started</p>
+        <a href="#" class="btn btn-primary">Connect an Account</a>
+    </div>
+{% endif %}
+{% endblock %}

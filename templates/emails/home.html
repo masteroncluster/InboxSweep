@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}InboxSweep - Clean Your Inbox{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-light py-5 mb-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4">Clean Your Inbox</h1>
+                <p class="lead">InboxSweep helps you organize, analyze, and clean up your email inbox efficiently.</p>
+                {% if not is_authenticated %}
+                    <a class="btn btn-primary btn-lg" href="/accounts/login/" role="button">Get Started</a>
+                {% else %}
+                    <a class="btn btn-primary btn-lg" href="{% url 'emails:dashboard' %}" role="button">Go to Dashboard</a>
+                {% endif %}
+            </div>
+            <div class="col-lg-4">
+                <img src="https://via.placeholder.com/400x200/007bff/ffffff?text=Email+Organization" alt="Email Organization" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-shield-alt text-primary"></i> Secure</h5>
+                    <p class="card-text">Your email credentials are encrypted and never stored in plain text. We use industry-standard OAuth for secure authentication.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-bolt text-primary"></i> Fast</h5>
+                    <p class="card-text">Quickly analyze and categorize thousands of emails. Our optimized algorithms process your inbox in seconds.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-bar text-primary"></i> Insightful</h5>
+                    <p class="card-text">Gain valuable insights into your email habits with detailed analytics and reporting.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

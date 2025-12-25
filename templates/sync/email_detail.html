@@ -1,0 +1,89 @@
+{% extends 'sync/base.html' %}
+
+{% block title %}{{ email.subject }} - InboxSweep{% endblock %}
+
+{% block sync_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ email.subject }}</h2>
+    <div>
+        <a href="{% url 'sync:email_list' email.email_account.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Emails
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Message Content</h5>
+                    <div>
+                        {% if email.is_spam %}
+                            <span class="badge bg-danger">Spam</span>
+                        {% endif %}
+                        {% if email.is_important %}
+                            <span class="badge bg-warning">Important</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if email.body_html %}
+                    {{ email.body_html|safe }}
+                {% elif email.body_plain %}
+                    <pre>{{ email.body_plain }}</pre>
+                {% else %}
+                    <p class="text-muted">No content available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Message Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>From:</strong> {{ email.from_address }}</p>
+                <p><strong>To:</strong> {{ email.to_addresses|safe }}</p>
+                {% if email.cc_addresses %}
+                    <p><strong>CC:</strong> {{ email.cc_addresses|safe }}</p>
+                {% endif %}
+                {% if email.bcc_addresses %}
+                    <p><strong>BCC:</strong> {{ email.bcc_addresses|safe }}</p>
+                {% endif %}
+                <p><strong>Sent:</strong> {{ email.sent_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Received:</strong> {{ email.received_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Size:</strong> {{ email.size|filesizeformat }}</p>
+                <p><strong>Message ID:</strong> {{ email.message_id }}</p>
+                {% if email.thread_id %}
+                    <p><strong>Thread ID:</strong> {{ email.thread_id }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if email.attachments.all %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Attachments</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for attachment in email.attachments.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-paperclip"></i> {{ attachment.filename }}
+                                <small class="text-muted">({{ attachment.content_type }})</small>
+                            </div>
+                            <span class="badge bg-secondary">{{ attachment.size|filesizeformat }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

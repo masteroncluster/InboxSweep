@@ -1,0 +1,134 @@
+{% extends 'sync/base.html' %}
+
+{% block title %}Sync Dashboard - InboxSweep{% endblock %}
+
+{% block sync_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Email Synchronization</h2>
+</div>
+
+{% if email_accounts %}
+    <div class="row">
+        {% for account in email_accounts %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>{{ account.email_address }}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Provider:</strong> {{ account.provider|title }}</p>
+                    <p><strong>Status:</strong> 
+                        {% if account.is_active %}
+                            <span class="text-success">Active</span>
+                        {% else %}
+                            <span class="text-danger">Inactive</span>
+                        {% endif %}
+                    </p>
+                    
+                    {% for status in sync_statuses %}
+                        {% if status.email_account == account %}
+                            <p><strong>Sync Status:</strong> 
+                                {% if status.is_syncing %}
+                                    <span class="text-warning">Syncing... ({{ status.progress_percentage }}%)</span>
+                                {% else %}
+                                    <span class="text-success">Up to date</span>
+                                {% endif %}
+                            </p>
+                            {% if status.last_sync_completed %}
+                                <p><strong>Last Sync:</strong> {{ status.last_sync_completed|date:"M d, Y H:i" }}</p>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div class="btn-group" role="group">
+                        <button type="button"
+                                class="btn btn-primary btn-sm"
+                                onclick="startSync({{ account.id }})">
+                            <i class="fas fa-sync"></i> Sync Now
+                        </button>
+                        <a href="{% url 'sync:email_list' account.id %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-envelope"></i> View Emails
+                        </a>
+                        <a href="{% url 'sync:sync_history' account.id %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-history"></i> History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if sync_logs %}
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Sync Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Messages</th>
+                                <th>Started</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in sync_logs %}
+                            <tr>
+                                <td>{{ log.email_account.email_address }}</td>
+                                <td>{{ log.sync_type|title }}</td>
+                                <td>
+                                    {% if log.status == 'completed' %}
+                                        <span class="text-success">{{ log.status|title }}</span>
+                                    {% elif log.status == 'failed' %}
+                                        <span class="text-danger">{{ log.status|title }}</span>
+                                    {% else %}
+                                        <span class="text-warning">{{ log.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.messages_processed }}</td>
+                                <td>{{ log.started_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <h4>No email accounts connected</h4>
+        <p class="text-muted">Connect your email accounts to get started with synchronization</p>
+        <a href="{% url 'oauth:connections' %}" class="btn btn-primary">Connect Email Account</a>
+    </div>
+{% endif %}
+
+<script>
+function startSync(accountId) {
+    fetch(`/sync/account/${accountId}/start/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Sync started successfully!');
+            location.reload();
+        } else {
+            alert('Error starting sync: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error starting sync: ' + error);
+    });
+}
+</script>
+{% endblock %}

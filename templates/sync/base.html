@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Sync - InboxSweep{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Sync Navigation</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'sync:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                {% for account in email_accounts %}
+                <a href="{% url 'sync:email_list' account.id %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-envelope"></i> {{ account.email_address }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        {% block sync_content %}
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
